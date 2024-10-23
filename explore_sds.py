@@ -68,13 +68,20 @@ class fit_obj:
         tree.fit(indices, spectra_filtered_list_sky_array) #tree.fit(features, targets)
         #Generate the master sky from prediction
         master_sky=tree.predict( np.array(indices.shape[0]).reshape(-1,1))
-        #Subtract the master from one of the fibers to get residuals
-        sub=master_sky[0]- self.spectra_filtered_list[1]['sky']
+
+        #scaling the master sky to the science spectra
+        ref_master= master_sky[0][3600:3750]
+        ref_sky=self.spectra_filtered_list['sky'][:,3600:3750]
+        scaling=np.mean(ref_sky/ref_master)
+        master_scaled= master_sky[0]*scaling
+
+
+        #Subtract the scaled master from one of the fibers to get residuals
+        sub=master_scaled- self.spectra_filtered_list[1]['sky']
         #Convert to flux units
         sub_flux = sub* 10**-17 * u.Unit('erg cm-2 s-1 AA-1') 
         flux=self.spectra_filtered_list[1]['sky']* 10**-17 * u.Unit('erg cm-2 s-1 AA-1') 
         master_sky_flux=master_sky[0]* 10**-17 * u.Unit('erg cm-2 s-1 AA-1') 
-        
         
         fig,ax=plt.subplots(nrows=3,ncols=1,figsize=(10,7))
         ax[0].plot(10**self.spectra_filtered_list[1]['loglam'] * u.AA,
