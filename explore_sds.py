@@ -96,35 +96,8 @@ class fit_obj:
         fig,ax=plt.subplots(nrows=3,ncols=1,figsize=(10,7))
         ax[0].plot(10**self.spectra_filtered_list[1]['loglam'] * u.AA,
                    sub_flux, label='residual (sub from master sky)')
-        ax[0].legend()def decision_tree_sky_model(self):
-        spectra_filtered_list_sky_array=np.array(self.spectra_filtered_list['sky'])
+        ax[0].legend()
         
-        wavebins = spectra_filtered_list_sky_array.shape[1]
-        num_spectra = spectra_filtered_list_sky_array.shape[0]
-        master_sky_spectrum = np.zeros(wavebins)
-
-        # Running over each intensity value at a wavebin
-        for i in range(wavebins):
-            # Intensities for the i-th wavelength bin for all fibres
-            flux_at_wavebin = spectra_filtered_list_sky_array[:, i]
-            fibres=np.arange(num_spectra).reshape(-1,1)
-            regressor = DecisionTreeRegressor(max_depth=3)  
-            regressor.fit(fibres, flux_at_wavebin)  
-            pred_values = regressor.predict(fibres)
-            master_sky_spectrum[i] = pred_values.mean()
-
-        print("Generated Master Sky Spectrum:", master_sky_spectrum)
-
-        #scaling the master sky to the science spectra
-        ref_master= master_sky_spectrum[3600:3750]
-        ref_sky=spectra_filtered_list_sky_array[:,3600:3750]
-        scaling=np.mean(ref_sky/ref_master)
-        master_scaled= master_sky_spectrum[0]*scaling
-
-
-        #Subtract the master from one of the fibers to get residuals
-        sub=master_scaled- spectra_filtered_list_sky_array[1]
-        #Convert to flux units
         ax[1].plot(10**self.spectra_filtered_list[1]['loglam'] * u.AA, 
                    sky_flux, label='sky')
         ax[1].legend()
